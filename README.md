@@ -1,5 +1,7 @@
 # 🤖 El Día de Alex — 2035
-Historia interactiva con IA · Flask + Anthropic API
+Historia interactiva con IA · Flask + Python
+
+**Proyecto Final — Introducción a la IA | Baroni Ulises**
 
 ---
 
@@ -7,12 +9,39 @@ Historia interactiva con IA · Flask + Anthropic API
 
 ```
 alex2035/
-├── app.py              ← Servidor Flask (backend Python)
-├── requirements.txt    ← Dependencias
-├── render.yaml         ← Configuración de deploy en Render
-└── templates/
-    └── index.html      ← Toda la UI (HTML + CSS + JS)
+├── app.py                  ← Servidor Flask (backend Python)
+├── requirements.txt        ← Dependencias
+├── render.yaml             ← Configuración de deploy en Render
+├── README.md               ← Este archivo
+├── templates/
+│   └── index.html          ← Toda la UI (HTML + CSS + JS)
+└── static/
+    ├── audio/
+    │   └── ambient.mp3     ← Audio ambient en loop (agregar manualmente)
+    └── img/
+        └── *.jpg / *.png   ← Imágenes de cada escena (agregar manualmente)
 ```
+
+---
+
+## 🎮 Concepto
+
+Una historia interactiva ambientada en el año 2035 donde el usuario toma decisiones por Alex a lo largo de su día. Cada elección refleja un concepto distinto sobre el uso de la inteligencia artificial. Al final, el resultado varía según las decisiones tomadas.
+
+**Escenas:**
+| # | Escena | Tema |
+|---|--------|------|
+| 1 | 🌅 Mañana | Organización con/sin IA |
+| 2 | 💼 Trabajo | Resolución de problemas |
+| 3 | 🎮 Ocio | Personalización y recomendación |
+| 4 | 🔧 Prompting | Cómo comunicarse con la IA |
+
+**Finales posibles:**
+| Elecciones | Final |
+|------------|-------|
+| Mayoría con IA | 🟢 Equilibrio humano + IA |
+| Todas sin IA | 🟡 Control total humano |
+| Todas con IA | 🔵 Dependencia digital |
 
 ---
 
@@ -20,27 +49,46 @@ alex2035/
 
 ### 1. Instalar dependencias
 ```bash
-pip install -r requirements.txt
+pip install flask gunicorn
 ```
 
-### 2. Configurar la API Key de Anthropic
-```bash
-# En Mac/Linux:
-export ANTHROPIC_API_KEY="sk-ant-..."
-
-# En Windows (CMD):
-set ANTHROPIC_API_KEY=sk-ant-...
-
-# En Windows (PowerShell):
-$env:ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-### 3. Correr el servidor
+### 2. Correr el servidor
 ```bash
 python app.py
 ```
 
-Abrí el navegador en: **http://localhost:5000**
+### 3. Abrir en el navegador
+```
+http://localhost:5000
+```
+
+---
+
+## 🖼️ Agregar imágenes propias
+
+Reemplazá las URLs de Unsplash en `templates/index.html` por rutas locales:
+
+```html
+<!-- Antes (imagen externa) -->
+<img src="https://images.unsplash.com/..." >
+
+<!-- Después (imagen propia) -->
+<img src="{{ url_for('static', filename='img/tu-imagen.jpg') }}" >
+```
+
+Guardá tus imágenes en `static/img/`.
+
+---
+
+## 🔊 Agregar audio
+
+Poné tu archivo de audio en:
+```
+static/audio/ambient.mp3
+```
+El audio se reproduce automáticamente al primer click del usuario y loopea en segundo plano. Se puede pausar/reanudar desde el widget en la esquina inferior derecha.
+
+Formatos soportados: `.mp3` / `.ogg`
 
 ---
 
@@ -59,41 +107,41 @@ git push -u origin main
 1. Entrá a **https://render.com** y logueate con GitHub
 2. Click en **"New +"** → **"Web Service"**
 3. Conectá tu repositorio `alex2035`
-4. Render detecta el `render.yaml` automáticamente
+4. Render detecta el `render.yaml` automáticamente y configura todo
 
-### Paso 3 — Agregar la API Key
-1. En el panel de Render → **Environment**
-2. Agregá la variable:
-   - **Key:** `ANTHROPIC_API_KEY`
-   - **Value:** `sk-ant-tu-clave-aqui`
-3. Click **"Save Changes"**
-
-### Paso 4 — Deploy
-Render hace el deploy automáticamente. En ~2 minutos tenés tu URL pública:
+### Paso 3 — Deploy
+En ~2 minutos tenés tu URL pública permanente:
 ```
 https://alex2035.onrender.com
 ```
 
----
-
-## 🎮 Cómo funciona
-
-| Escena | Decisión | Concepto IA |
-|--------|----------|-------------|
-| 🌅 Mañana | Organizar con/sin IA | Optimización de datos |
-| 💼 Trabajo | Resolver con/sin IA | Potenciación humana |
-| 🎮 Ocio | Elegir con/sin IA | Personalización |
-
-**Finales posibles:**
-- 🟢 Equilibrio humano + IA (mix de opciones)
-- 🟡 Control total humano (todas opción B)
-- 🔵 Dependencia digital (todas opción A)
+> ⚠️ En el plan gratuito de Render, el servidor se duerme tras 15 minutos de inactividad. El primer acceso puede tardar ~30 segundos en despertar.
 
 ---
 
-## 🔑 Obtener API Key de Anthropic
+## 🛠️ Tecnologías utilizadas
 
-1. Entrá a **https://console.anthropic.com**
-2. Creá una cuenta o logueate
-3. Ir a **"API Keys"** → **"Create Key"**
-4. Copiá la clave (empieza con `sk-ant-`)
+| Herramienta | Uso |
+|-------------|-----|
+| Python + Flask | Servidor web y lógica del juego |
+| HTML + CSS + JS | Interfaz cyberpunk (sin frameworks) |
+| Gunicorn | Servidor WSGI para producción |
+| Render.com | Deploy y hosting gratuito |
+| Unsplash | Imágenes placeholder |
+| IA generativa | Narrativa, prompts, conceptualización y código |
+
+---
+
+## 💡 Prompting — Concepto clave del proyecto
+
+El proyecto incluye una sección educativa que compara prompts simples vs optimizados en tres casos:
+- Organización personal
+- Resolución de problemas laborales  
+- Generación de imágenes con IA
+
+**Fórmula del prompt efectivo:**
+> Contexto + Rol + Objetivo + Restricciones = Resultado de calidad
+
+---
+
+*© 2025 | Proyecto Final — Introducción a la IA | Baroni Ulises*
