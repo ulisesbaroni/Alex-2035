@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Día de Alex — 2035</title>
+  <meta name="description" content="Experiencia interactiva sobre cómo la inteligencia artificial influye en la toma de decisiones en el año 2035.">
+  <meta name="author" content="Ulises Baroni">
+  <meta name="keywords" content="inteligencia artificial, IA, 2035, experiencia interactiva, proyecto final">
+  <meta name="subject" content="Proyecto final de Inteligencia Artificial">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00f5ff;
+      --pink: #ff006e;
+      --green: #39ff14;
+      --yellow: #ffcc00;
+      --dark: #030508;
+      --panel: rgba(0, 8, 20, 0.9);
+      --text: #b8dff0;
+      --dim: #3a6080;
+      --glow-c: 0 0 15px rgba(0,245,255,0.5), 0 0 35px rgba(0,245,255,0.25);
+      --glow-p: 0 0 15px rgba(255,0,110,0.5), 0 0 35px rgba(255,0,110,0.25);
+      --glow-g: 0 0 15px rgba(57,255,20,0.5), 0 0 35px rgba(57,255,20,0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 18px;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .bg-scan {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+      );
+    }
+    .bg-glow {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 80%, rgba(0,245,255,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 20%, rgba(255,0,110,0.06) 0%, transparent 70%);
+    }
+
+    #app {
+      position: relative; z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .screen { display: none; animation: fadeIn 0.6s ease forwards; }
+    .screen.active { display: flex; flex-direction: column; gap: 28px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--cyan);
+      border: 1px solid rgba(0,245,255,0.3);
+      padding: 4px 12px;
+      letter-spacing: 2px;
+      background: rgba(0,245,255,0.05);
+    }
+    .chip::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: var(--glow-c);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    h1.title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      font-weight: 900;
+      line-height: 1.05;
+      color: #fff;
+      text-shadow: var(--glow-c);
+      letter-spacing: -1px;
+    }
+    h1.title span { color: var(--cyan); }
+
+    .narration {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.25rem);
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--text);
+      border-left: 2px solid var(--cyan);
+      padding-left: 20px;
+    }
+
+    h2.scene-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.1rem, 3vw, 1.8rem);
+      font-weight: 700;
+      color: var(--cyan);
+      text-shadow: var(--glow-c);
+      display: flex; align-items: center; gap: 12px;
+    }
+    h2.scene-title .icon { font-size: 1.4em; }
+
+    /* ── IMAGEN WRAPPER con botón prompt ── */
+    .scene-img-wrap {
+      position: relative;
+      display: block;
+    }
+    .scene-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border: 1px solid rgba(0,245,255,0.2);
+      filter: saturate(0.7) brightness(0.8) hue-rotate(10deg);
+      display: block;
+    }
+
+    /* ── BOTÓN PROMPT IMAGEN (tipo Genially) ── */
+    .img-prompt-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: rgba(0,8,20,0.85);
+      border: 1px solid var(--cyan);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--cyan);
+      box-shadow: var(--glow-c);
+      animation: pulse-btn 2s ease-in-out infinite;
+      transition: transform 0.2s, background 0.2s;
+      z-index: 5;
+    }
+    .img-prompt-btn:hover {
+      background: var(--cyan);
+      color: var(--dark);
+      transform: scale(1.15);
+      animation: none;
+    }
+    @keyframes pulse-btn {
+      0%,100% { box-shadow: 0 0 6px rgba(0,245,255,0.6), 0 0 12px rgba(0,245,255,0.3); transform: scale(1); }
+      50%      { box-shadow: 0 0 16px rgba(0,245,255,0.9), 0 0 30px rgba(0,245,255,0.5); transform: scale(1.1); }
+    }
+
+    /* ── OPCIONES ── */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media(max-width:560px){ .options-grid { grid-template-columns: 1fr; } }
+
+    .option-btn {
+      background: var(--panel);
+      border: 1px solid var(--dim);
+      padding: 24px 20px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: left;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text);
+      position: relative;
+      overflow: hidden;
+    }
+    .option-btn::before {
+      content: ''; position: absolute; inset: 0;
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .option-btn.opt-a::before { background: linear-gradient(135deg, rgba(0,245,255,0.08), transparent); }
+    .option-btn.opt-b::before { background: linear-gradient(135deg, rgba(255,0,110,0.08), transparent); }
+    .option-btn:hover { transform: translateY(-2px); }
+    .option-btn.opt-a:hover { border-color: var(--cyan); box-shadow: var(--glow-c); }
+    .option-btn.opt-b:hover { border-color: var(--pink); box-shadow: var(--glow-p); }
+    .option-btn:hover::before { opacity: 1; }
+    .option-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .opt-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px; letter-spacing: 3px;
+      margin-bottom: 8px; display: block;
+    }
+    .opt-a .opt-label { color: var(--cyan); }
+    .opt-b .opt-label { color: var(--pink); }
+    .opt-text { font-size: 1.05rem; font-weight: 600; line-height: 1.3; color: #fff; }
+
+    .btn-main {
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      padding: 14px 40px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      align-self: flex-start;
+      box-shadow: var(--glow-c);
+    }
+    .btn-main:hover { background: var(--cyan); color: var(--dark); transform: translateY(-2px); }
+    .btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* ── MODAL GENÉRICO ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(3,5,8,0.92);
+      align-items: center; justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--panel);
+      border: 1px solid var(--cyan);
+      max-width: 560px;
+      width: 100%;
+      padding: 36px 32px;
+      box-shadow: var(--glow-c);
+      animation: fadeIn 0.4s ease;
+    }
+    .modal-box.pink-modal  { border-color: var(--pink);  box-shadow: var(--glow-p); }
+    .modal-box.green-modal { border-color: var(--green); box-shadow: var(--glow-g); }
+
+    .modal-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; letter-spacing: 4px;
+      color: var(--cyan); margin-bottom: 16px; display: block;
+    }
+    .pink-modal  .modal-tag { color: var(--pink); }
+    .green-modal .modal-tag { color: var(--green); }
+
+    .modal-text { font-size: 1.1rem; line-height: 1.7; color: var(--text); min-height: 60px; }
+
+    .modal-concept {
+      margin-top: 20px; padding: 12px 16px;
+      background: rgba(0,245,255,0.06);
+      border-left: 3px solid var(--cyan);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.82rem; color: var(--cyan); line-height: 1.5;
+    }
+    .pink-modal  .modal-concept { background: rgba(255,0,110,0.06); border-color: var(--pink);  color: var(--pink); }
+    .green-modal .modal-concept { background: rgba(57,255,20,0.06);  border-color: var(--green); color: var(--green); }
+
+    .modal-close {
+      margin-top: 24px; width: 100%;
+      background: transparent; border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.75rem; letter-spacing: 3px;
+      padding: 12px; cursor: pointer; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .pink-modal  .modal-close { border-color: var(--pink);  color: var(--pink); }
+    .green-modal .modal-close { border-color: var(--green); color: var(--green); }
+    .modal-close:hover { opacity: 0.7; }
+
+    .loading-bar {
+      width: 100%; height: 2px;
+      background: rgba(0,245,255,0.15);
+      margin-top: 16px; overflow: hidden;
+    }
+    .loading-bar::after {
+      content: ''; display: block;
+      width: 40%; height: 100%;
+      background: var(--cyan);
+      box-shadow: var(--glow-c);
+      animation: slide 1s ease-in-out infinite alternate;
+    }
+    @keyframes slide { from{transform:translateX(-100%)} to{transform:translateX(300%)} }
+
+    .progress-bar { display: flex; gap: 8px; align-items: center; }
+    .progress-dot {
+      width: 10px; height: 10px;
+      border: 1px solid var(--dim); border-radius: 50%;
+      transition: all 0.3s;
+    }
+    .progress-dot.done   { background: var(--cyan); border-color: var(--cyan); box-shadow: var(--glow-c); }
+    .progress-dot.active { border-color: var(--cyan); animation: blink 1s infinite; }
+    .progress-label { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--dim); margin-left: 8px; letter-spacing: 2px; }
+
+    /* ── PROMPTS ── */
+    .prompt-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:560px){ .prompt-compare { grid-template-columns: 1fr; } }
+
+    .prompt-card {
+      padding: 20px; border: 1px solid;
+      background: var(--panel);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.82rem; line-height: 1.7;
+    }
+    .prompt-card.bad  { border-color: var(--pink); }
+    .prompt-card.good { border-color: var(--green); box-shadow: var(--glow-g); }
+
+    .prompt-card-label {
+      font-size: 10px; letter-spacing: 3px;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .bad  .prompt-card-label { color: var(--pink); }
+    .good .prompt-card-label { color: var(--green); }
+
+    .prompt-text { color: var(--text); font-style: italic; }
+
+    .prompt-result {
+      margin-top: 12px; padding-top: 12px;
+      border-top: 1px solid; font-size: 0.78rem; font-style: normal;
+    }
+    .bad  .prompt-result { border-color: rgba(255,0,110,0.3);  color: rgba(255,100,130,0.8); }
+    .good .prompt-result { border-color: rgba(57,255,20,0.3);   color: rgba(57,255,20,0.8); }
+
+    /* ── AUDIO WIDGET ── */
+    #audio-widget {
+      position: fixed;
+      bottom: 18px; right: 18px;
+      z-index: 200;
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(0,8,20,0.88);
+      border: 1px solid rgba(0,245,255,0.3);
+      padding: 8px 14px;
+      backdrop-filter: blur(6px);
+    }
+    #audio-toggle {
+      background: none; border: none; cursor: pointer;
+      font-size: 16px; color: var(--cyan);
+      font-family: 'Share Tech Mono', monospace;
+      padding: 0; transition: color 0.2s;
+    }
+    #audio-toggle:hover { color: #fff; }
+    .audio-bars {
+      display: flex; align-items: flex-end; gap: 3px; height: 16px;
+    }
+    .audio-bar {
+      width: 3px; background: var(--cyan);
+      border-radius: 1px;
+      animation: bar-dance 0.8s ease-in-out infinite alternate;
+    }
+    .audio-bar:nth-child(1) { height: 6px;  animation-delay: 0s; }
+    .audio-bar:nth-child(2) { height: 12px; animation-delay: 0.15s; }
+    .audio-bar:nth-child(3) { height: 8px;  animation-delay: 0.3s; }
+    .audio-bar:nth-child(4) { height: 14px; animation-delay: 0.1s; }
+    .audio-bar:nth-child(5) { height: 5px;  animation-delay: 0.25s; }
+    @keyframes bar-dance {
+      from { transform: scaleY(0.3); opacity: 0.5; }
+      to   { transform: scaleY(1.0); opacity: 1; }
+    }
+    .audio-bars.paused .audio-bar { animation-play-state: paused; opacity: 0.3; }
+    #audio-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px; letter-spacing: 2px; color: var(--dim);
+    }
+
+    /* ── FINALES ── */
+    .ending-badge {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem; letter-spacing: 4px;
+      padding: 8px 20px; border: 1px solid;
+      display: inline-block; text-transform: uppercase;
+    }
+    .ending-equilibrio { color: var(--cyan);   border-color: var(--cyan);   box-shadow: var(--glow-c); }
+    .ending-humano     { color: var(--yellow); border-color: var(--yellow); box-shadow: 0 0 15px rgba(255,204,0,0.5); }
+    .ending-dependencia{ color: var(--pink);   border-color: var(--pink);   box-shadow: var(--glow-p); }
+
+    h2.ending-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.3rem, 4vw, 2.2rem);
+      font-weight: 700; color: #fff; line-height: 1.15;
+    }
+
+    .reflection-box {
+      border: 1px solid rgba(0,245,255,0.25);
+      padding: 24px; background: rgba(0,245,255,0.03);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.15rem; line-height: 1.8;
+      color: #fff; font-style: italic; text-align: center;
+    }
+
+    .choices-recap { display: flex; gap: 12px; flex-wrap: wrap; }
+    .choice-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px; letter-spacing: 2px;
+      padding: 4px 10px; border: 1px solid var(--dim); color: var(--dim);
+    }
+    .choice-tag.ai    { border-color: var(--cyan); color: var(--cyan); }
+    .choice-tag.human { border-color: var(--pink); color: var(--pink); }
+
+    .btn-restart {
+      background: transparent; border: 1px solid var(--dim);
+      color: var(--dim);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem; letter-spacing: 3px;
+      padding: 10px 24px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-restart:hover { border-color: var(--text); color: var(--text); }
+
+    .deco-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-scan"></div>
+<div class="bg-glow"></div>
+
+<!-- ── AUDIO ── -->
+<audio id="bg-audio" loop>
+  <source src="/static/audio/ambient.mp3" type="audio/mpeg">
+  <source src="/static/audio/ambient.ogg" type="audio/ogg">
+</audio>
+
+<!-- ── WIDGET AUDIO (esquina inferior derecha) ── -->
+<div id="audio-widget">
+  <button id="audio-toggle" onclick="toggleAudio()" title="Activar/silenciar audio">⏸</button>
+  <div class="audio-bars" id="audio-bars">
+    <div class="audio-bar"></div>
+    <div class="audio-bar"></div>
+    <div class="audio-bar"></div>
+    <div class="audio-bar"></div>
+    <div class="audio-bar"></div>
+  </div>
+  <span id="audio-label">AMBIENT</span>
+</div>
+
+<div id="app">
+
+  <!-- ══ INTRO ══ -->
+  <section class="screen active" id="screen-intro">
+    <div class="chip">PROYECTO FINAL IA // AÑO 2035 // SIMULACIÓN ACTIVA</div>
+    <h1 class="title">El día de<br><span>Alex</span><br>depende de vos.</h1>
+    <div class="narration">
+      La inteligencia artificial ya forma parte de cada momento de nuestras vidas.<br>
+      Hoy no vas a observar… <strong style="color:#fff">vas a decidir.</strong><br>
+      Cada elección cambiará el rumbo del día de Alex.
+    </div>
+    <div class="scene-img-wrap">
+      <img class="scene-img"
+        src="{{ url_for('static', filename='img/intro-alex.png') }}"
+        alt="Ciudad futurista 2035">
+      <button class="img-prompt-btn" onclick="openPromptModal('intro')">?</button>
+    </div>
+    <button class="btn-main" onclick="goTo('screen-s1')">▶ EMPEZAR</button>
+  </section>
+
+  <!-- ══ ESCENA 1 — MAÑANA ══ -->
+  <section class="screen" id="screen-s1">
+    <div class="progress-bar">
+      <div class="progress-dot active" id="dot-1"></div>
+      <div class="progress-dot" id="dot-2"></div>
+      <div class="progress-dot" id="dot-3"></div>
+      <span class="progress-label">ESCENA 1 / 3</span>
+    </div>
+    <h2 class="scene-title"><span class="icon">🌅</span> MAÑANA — Primera decisión</h2>
+    <div class="scene-img-wrap">
+      <img class="scene-img"
+        src="{{ url_for('static', filename='img/alex-habitación.png') }}"
+        alt="Alex despertándose">
+      <button class="img-prompt-btn" onclick="openPromptModal('scene1')">?</button>
+    </div>
+    <div class="narration">
+      Alex se despierta. Su asistente de IA le propone organizar el día automáticamente.
+      <br><strong style="color:#fff">¿Qué debería hacer?</strong>
+    </div>
+    <div class="options-grid">
+      <button class="option-btn opt-a" onclick="choose('s1','A','scene1_A','cyan')">
+        <span class="opt-label">// OPCIÓN A</span>
+        <span class="opt-text">Aceptar la ayuda de la IA para organizar el día</span>
+      </button>
+      <button class="option-btn opt-b" onclick="choose('s1','B','scene1_B','pink')">
+        <span class="opt-label">// OPCIÓN B</span>
+        <span class="opt-text">Organizar el día manualmente, sin IA</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══ ESCENA 2 — TRABAJO ══ -->
+  <section class="screen" id="screen-s2">
+    <div class="progress-bar">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot active"></div>
+      <div class="progress-dot"></div>
+      <span class="progress-label">ESCENA 2 / 3</span>
+    </div>
+    <h2 class="scene-title"><span class="icon">💼</span> TRABAJO — Segunda decisión</h2>
+    <div class="scene-img-wrap">
+      <img class="scene-img"
+        src="{{ url_for('static', filename='img/alex-trabajo.png') }}"
+        alt="Alex en el trabajo">
+      <button class="img-prompt-btn" onclick="openPromptModal('scene2')">?</button>
+    </div>
+    <div class="narration">
+      Alex enfrenta un problema importante en su trabajo. Tiene poco tiempo para resolverlo.
+      <br><strong style="color:#fff">¿Cómo debería actuar?</strong>
+    </div>
+    <div class="options-grid">
+      <button class="option-btn opt-a" onclick="choose('s2','A','scene2_A','cyan')">
+        <span class="opt-label">// OPCIÓN A</span>
+        <span class="opt-text">Usar la IA como apoyo para encontrar soluciones</span>
+      </button>
+      <button class="option-btn opt-b" onclick="choose('s2','B','scene2_B','pink')">
+        <span class="opt-label">// OPCIÓN B</span>
+        <span class="opt-text">Resolver el problema completamente sola</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══ ESCENA 3 — OCIO ══ -->
+  <section class="screen" id="screen-s3">
+    <div class="progress-bar">
+      <div class="progress-dot done"></div>
+      <div class="progress-dot done"></div>
+      <div class="progress-dot active"></div>
+      <span class="progress-label">ESCENA 3 / 3</span>
+    </div>
+    <h2 class="scene-title"><span class="icon">🎮</span> OCIO — Tercera decisión</h2>
+    <div class="scene-img-wrap">
+      <img class="scene-img"
+        src="{{ url_for('static', filename='img/alex-ocio.png') }}"
+        alt="Alex relajándose">
+      <button class="img-prompt-btn" onclick="openPromptModal('scene3')">?</button>
+    </div>
+    <div class="narration">
+      Después de un largo día, Alex quiere relajarse y disfrutar su tiempo libre.
+      <br><strong style="color:#fff">¿Qué debería elegir?</strong>
+    </div>
+    <div class="options-grid">
+      <button class="option-btn opt-a" onclick="choose('s3','A','scene3_A','cyan')">
+        <span class="opt-label">// OPCIÓN A</span>
+        <span class="opt-text">Dejar que la IA recomiende el entretenimiento ideal</span>
+      </button>
+      <button class="option-btn opt-b" onclick="choose('s3','B','scene3_B','pink')">
+        <span class="opt-label">// OPCIÓN B</span>
+        <span class="opt-text">Explorar y elegir por su propia cuenta</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══ ESCENA 4 — PROMPTING ══ -->
+  <section class="screen" id="screen-s4">
+    <div class="chip">MÓDULO EDUCATIVO // PROMPTING</div>
+    <h2 class="scene-title"><span class="icon">🔧</span> LA CLAVE DETRÁS DE TODO</h2>
+    <div class="narration">
+      Todas las decisiones que tomaste en la historia dependieron de algo fundamental:
+      <strong style="color:#fff">cómo nos comunicamos con la IA.</strong><br>
+      La calidad del resultado depende de la calidad del prompt.
+    </div>
+    <div class="deco-line"></div>
+
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--dim);">// CASO 1 — ORGANIZACIÓN PERSONAL</p>
+    <div class="prompt-compare">
+      <div class="prompt-card bad">
+        <div class="prompt-card-label">✗ PROMPT SIMPLE</div>
+        <div class="prompt-text">"Organizame el día"</div>
+        <div class="prompt-result">Resultado vago. La IA no tiene contexto, objetivos ni prioridades. Respuesta genérica e inútil.</div>
+      </div>
+      <div class="prompt-card good">
+        <div class="prompt-card-label">✓ PROMPT OPTIMIZADO</div>
+        <div class="prompt-text">"Soy desarrollador, tengo reunión a las 10h, entrega a las 17h y necesito una hora para el almuerzo. Organizá mi día priorizando la entrega. Dame un cronograma por bloques de 90 minutos."</div>
+        <div class="prompt-result">Resultado preciso. Contexto + objetivo + restricciones = respuesta de alta calidad.</div>
+      </div>
+    </div>
+
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--dim);">// CASO 2 — RESOLUCIÓN DE PROBLEMAS</p>
+    <div class="prompt-compare">
+      <div class="prompt-card bad">
+        <div class="prompt-card-label">✗ PROMPT SIMPLE</div>
+        <div class="prompt-text">"Dame ideas para resolver mi problema en el trabajo"</div>
+        <div class="prompt-result">Sin contexto del problema, el rubro ni las herramientas. Respuesta irrelevante.</div>
+      </div>
+      <div class="prompt-card good">
+        <div class="prompt-card-label">✓ PROMPT OPTIMIZADO</div>
+        <div class="prompt-text">"Soy analista de datos. El reporte de ventas del Q3 tiene inconsistencias entre Excel y el CRM. Tengo 2 horas. Dame un checklist de diagnóstico paso a paso, empezando por lo más probable."</div>
+        <div class="prompt-result">Contexto profesional + problema específico + tiempo disponible = solución accionable.</div>
+      </div>
+    </div>
+
+    <p style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--dim);">// CASO 3 — GENERACIÓN DE IMAGEN CON IA</p>
+    <div class="prompt-compare">
+      <div class="prompt-card bad">
+        <div class="prompt-card-label">✗ PROMPT SIMPLE</div>
+        <div class="prompt-text">"Una ciudad del futuro de noche"</div>
+        <div class="prompt-result">Imagen genérica, sin estilo definido, sin iluminación ni atmósfera específica. Resultado predecible y sin carácter.</div>
+      </div>
+      <div class="prompt-card good">
+        <div class="prompt-card-label">✓ PROMPT OPTIMIZADO</div>
+        <div class="prompt-text">"Ciudad cyberpunk 2035, vista aérea nocturna, lluvia reflejando neones azules y rosas en el asfalto, rascacielos con pantallas holográficas, estilo cinemático, render ultradetallado, 8K, inspirado en Blade Runner 2049"</div>
+        <div class="prompt-result">Estilo + perspectiva + iluminación + referencia visual = imagen con identidad propia y resultado predecible.</div>
+      </div>
+    </div>
+
+    <button class="btn-main" onclick="goToFinal()">▶ VER MI RESULTADO FINAL</button>
+  </section>
+
+  <!-- ══ FINAL ══ -->
+  <section class="screen" id="screen-final">
+    <div class="chip">RESULTADO FINAL // SIMULACIÓN COMPLETA</div>
+    <div id="ending-badge-container"></div>
+    <h2 class="ending-title" id="ending-title">Calculando tu final...</h2>
+    <div class="choices-recap" id="choices-recap"></div>
+    <div class="narration" id="ending-text" style="min-height:100px">
+      <div class="loading-bar"></div>
+    </div>
+    <div class="deco-line"></div>
+    <div class="reflection-box">
+      "La IA no define el futuro.<br>
+      <strong>Las decisiones humanas sí.</strong>"
+    </div>
+    <div class="reflection-box" style="border-color:rgba(57,255,20,0.2);background:rgba(57,255,20,0.02);font-style:normal;font-size:1rem;color:var(--dim);text-align:left;">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--green);display:block;margin-bottom:12px;">// NOTA DE PRODUCCIÓN</span>
+      Este proyecto no fue construido de una sola manera. Código, narrativa, sonido, imágenes y conceptualización — cada pieza generada con la herramienta de IA más adecuada para ese propósito. <strong style="color:var(--text)">No una IA. Varias. Trabajando juntas.</strong>
+    </div>
+    <button class="btn-restart" onclick="restart()">↺ VOLVER A EMPEZAR</button>
+  </section>
+
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer style="
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 24px 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  border-top: 1px solid rgba(0,245,255,0.08);
+  margin-top: 40px;
+">
+  © 2026 &nbsp;|&nbsp; PROYECTO FINAL - INTRODUCCIÓN A LA IA &nbsp;|&nbsp; BARONI ULISES
+</footer>
+
+<!-- ══ MODAL DECISIÓN ══ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box" id="modal-box">
+    <span class="modal-tag" id="modal-tag">// RESULTADO</span>
+    <div class="modal-text" id="modal-text"></div>
+    <div class="modal-concept" id="modal-concept" style="display:none"></div>
+    <button class="modal-close" id="modal-close-btn" onclick="closeModal()" style="display:none">CONTINUAR →</button>
+  </div>
+</div>
+
+<!-- ══ MODAL PROMPT IMAGEN ══ -->
+<div class="modal-overlay" id="modal-prompt">
+  <div class="modal-box green-modal">
+    <span class="modal-tag">// PROMPT UTILIZADO PARA LA IMAGEN - GEMINI</span>
+    <div class="modal-text" id="prompt-modal-text"></div>
+    <button class="modal-close" onclick="closePromptModal()">CERRAR ✕</button>
+  </div>
+</div>
+
+<script>
+  // ── Prompts de imágenes ────────────────────────────────────────────────────
+  const IMAGE_PROMPTS = {
+    intro:  "Escena futurista ambientada en el año 2035. Una persona joven (Alex) se encuentra en un entorno tecnológico avanzado, con luces neón y pantallas holográficas a su alrededor. El personaje está frente a múltiples opciones o caminos de decisión flotando en el aire, representando una experiencia interactiva. Se ven elementos de inteligencia artificial como interfaces digitales, flujos de datos y paneles luminosos integrados en el entorno cotidiano. Ambiente: cinematográfico, inmersivo, ligeramente misterioso. Estilo: ultra realista, futurista, con iluminación tipo cyberpunk. Colores: fondo oscuro con tonos neón azules y violetas.",
+    scene1: "Persona despertándose en habitación futurista minimalista 2035, luz azul de pantallas holográficas proyectando calendario y tareas, ambiente tecnológico cálido, fotografía cinemática de alta resolución.",
+    scene2: "Profesional en oficina futurista rodeado de pantallas holográficas con datos y gráficos, iluminación neón azul, ambiente de alta concentración y tecnología avanzada, estilo cinematográfico.",
+    scene3: "Persona relajada en sala de estar futurista 2035, pantalla holográfica grande frente a ella con contenido multimedia, iluminación ambiental suave neón, atmósfera cómoda y tecnológica.",
+  };
+
+  // ── Estado ─────────────────────────────────────────────────────────────────
+  const state = { choices: [], currentScene: null, pendingNext: null };
+
+  const CONCEPTS = {
+    scene1_A: "💡 CONCEPTO: La IA analiza datos históricos y preferencias para optimizar decisiones en tiempo real.",
+    scene1_B: "💡 CONCEPTO: Sin IA, el esfuerzo cognitivo aumenta. El tiempo es el recurso más escaso del siglo XXI.",
+    scene2_A: "💡 CONCEPTO: La IA potencia la capacidad humana — no la reemplaza, la amplifica.",
+    scene2_B: "💡 CONCEPTO: El trabajo humano sigue siendo válido, pero la eficiencia tiene un costo real.",
+    scene3_A: "💡 CONCEPTO: Los modelos de recomendación aprenden de cada interacción para personalizar la experiencia.",
+    scene3_B: "💡 CONCEPTO: La exploración autónoma genera serendipia. Más libertad, menos precisión.",
+  };
+
+  const NEXT_SCREEN = { s1: "screen-s2", s2: "screen-s3", s3: "screen-s4" };
+
+  // ── Navegación ─────────────────────────────────────────────────────────────
+  function goTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ── Modal prompt imagen ────────────────────────────────────────────────────
+  function openPromptModal(key) {
+    document.getElementById('prompt-modal-text').textContent = IMAGE_PROMPTS[key] || '—';
+    document.getElementById('modal-prompt').classList.add('open');
+  }
+  function closePromptModal() {
+    document.getElementById('modal-prompt').classList.remove('open');
+  }
+
+  // ── Elección ───────────────────────────────────────────────────────────────
+  async function choose(scene, option, promptKey, color) {
+    state.currentScene = scene;
+    state.choices.push(option);
+    state.pendingNext = NEXT_SCREEN[scene];
+
+    document.querySelectorAll(`#screen-s${scene.slice(-1)} .option-btn`)
+      .forEach(b => b.disabled = true);
+
+    openModal(color);
+    document.getElementById('modal-text').innerHTML = '<div class="loading-bar"></div>';
+    document.getElementById('modal-concept').style.display = 'none';
+    document.getElementById('modal-close-btn').style.display = 'none';
+
+    try {
+      const res = await fetch('/api/scene-result', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ scene_key: promptKey })
+      });
+      const data = await res.json();
+      document.getElementById('modal-text').textContent = data.text;
+      document.getElementById('modal-concept').textContent = CONCEPTS[promptKey];
+      document.getElementById('modal-concept').style.display = 'block';
+      document.getElementById('modal-close-btn').style.display = 'block';
+    } catch(e) {
+      document.getElementById('modal-text').textContent = 'Error al obtener el resultado.';
+      document.getElementById('modal-close-btn').style.display = 'block';
+    }
+  }
+
+  function openModal(color) {
+    const box = document.getElementById('modal-box');
+    document.getElementById('modal').classList.add('open');
+    box.classList.remove('pink-modal','green-modal');
+    if (color === 'pink') {
+      box.classList.add('pink-modal');
+      document.getElementById('modal-tag').textContent = '// RESULTADO — OPCIÓN B';
+    } else {
+      document.getElementById('modal-tag').textContent = '// RESULTADO — OPCIÓN A';
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    if (state.pendingNext) { goTo(state.pendingNext); state.pendingNext = null; }
+  }
+
+  // ── Final ──────────────────────────────────────────────────────────────────
+  async function goToFinal() {
+    goTo('screen-final');
+    const labels = ['MAÑANA','TRABAJO','OCIO'];
+    document.getElementById('choices-recap').innerHTML = state.choices.map((c,i) =>
+      `<span class="choice-tag ${c==='A'?'ai':'human'}">${labels[i]}: ${c==='A'?'USÓ IA':'SIN IA'}</span>`
+    ).join('');
+
+    try {
+      const res = await fetch('/api/final-result', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ choices: state.choices })
+      });
+      const data = await res.json();
+      renderEnding(data.ending_type, data.text);
+    } catch(e) {
+      document.getElementById('ending-text').textContent = 'Error al generar el resultado.';
+    }
+  }
+
+  function renderEnding(type, text) {
+    const configs = {
+      equilibrio:  { badge:'EQUILIBRIO HUMANO + IA', cls:'ending-equilibrio', title:'Alex logró un día eficiente y consciente' },
+      humano:      { badge:'CONTROL TOTAL HUMANO',   cls:'ending-humano',     title:'Alex tuvo el control, pero pagó el precio' },
+      dependencia: { badge:'DEPENDENCIA DIGITAL',    cls:'ending-dependencia',title:'La IA resolvió todo… Alex dejó de decidir' },
+    };
+    const cfg = configs[type];
+    document.getElementById('ending-badge-container').innerHTML =
+      `<span class="ending-badge ${cfg.cls}">${cfg.badge}</span>`;
+    document.getElementById('ending-title').textContent = cfg.title;
+    document.getElementById('ending-text').textContent = text;
+  }
+
+  // ── Restart ────────────────────────────────────────────────────────────────
+  function restart() {
+    state.choices = []; state.currentScene = null; state.pendingNext = null;
+    document.querySelectorAll('.option-btn').forEach(b => b.disabled = false);
+    goTo('screen-intro');
+  }
+
+  // ── Audio ──────────────────────────────────────────────────────────────────
+  let audioPlaying = false;
+  const audio = document.getElementById('bg-audio');
+  const bars  = document.getElementById('audio-bars');
+  const btn   = document.getElementById('audio-toggle');
+
+  // Intenta reproducir al primer click en cualquier parte (política de browsers)
+  document.addEventListener('click', function startAudio() {
+    if (!audioPlaying) {
+      audio.volume = 0.35;
+      audio.play().then(() => {
+        audioPlaying = true;
+        bars.classList.remove('paused');
+        btn.textContent = '⏸';
+      }).catch(() => {});
+    }
+    document.removeEventListener('click', startAudio);
+  }, { once: true });
+
+  function toggleAudio() {
+    if (audioPlaying) {
+      audio.pause();
+      audioPlaying = false;
+      bars.classList.add('paused');
+      btn.textContent = '▶';
+    } else {
+      audio.play();
+      audioPlaying = true;
+      bars.classList.remove('paused');
+      btn.textContent = '⏸';
+    }
+  }
+</script>
+</body>
+</html>
