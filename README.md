@@ -1,5 +1,9 @@
 # 🤖 El Día de Alex — 2035
-Historia interactiva con IA · Flask + Anthropic API
+Historia interactiva con IA · Flask + Python
+
+**Proyecto Final — Introducción a la IA | Baroni Ulises**
+
+🌐 **Demo en vivo:** https://alex-2035.onrender.com
 
 ---
 
@@ -7,74 +11,67 @@ Historia interactiva con IA · Flask + Anthropic API
 
 ```
 alex2035/
-├── app.py              ← Servidor Flask (backend Python)
-├── requirements.txt    ← Dependencias
-├── render.yaml         ← Configuración de deploy en Render
-└── templates/
-    └── index.html      ← Toda la UI (HTML + CSS + JS)
+├── app.py                  ← Servidor Flask (backend Python)
+├── requirements.txt        ← Dependencias
+├── render.yaml             ← Configuración de deploy en Render
+├── templates/
+│   └── index.html          ← Toda la UI (HTML + CSS + JS)
+└── static/
+    ├── audio/
+    │   └── ambient.mp3     ← Audio ambient en loop
+    └── img/
+        └── *.jpg / *.png   ← Imágenes de cada escena
 ```
 
 ---
 
-### 🚀 Correr el servidor
-```bash
-python app.py
-```
+## 🎮 Concepto
 
-Abrí el navegador en: **http://localhost:5000**
+Historia interactiva ambientada en el año 2035 donde el usuario toma decisiones por Alex a lo largo de su día. Cada elección refleja un concepto distinto sobre el uso de la inteligencia artificial.
 
----
-
-## 🌐 Deploy en Render (público en internet)
-
-### Paso 1 — Subir a GitHub
-```bash
-git init
-git add .
-git commit -m "El día de Alex 2035"
-git remote add origin https://github.com/TU_USUARIO/alex2035.git
-git push -u origin main
-```
-
-### Paso 2 — Crear servicio en Render
-1. Entrá a **https://render.com** y logueate con GitHub
-2. Click en **"New +"** → **"Web Service"**
-3. Conectá tu repositorio `alex2035`
-4. Render detecta el `render.yaml` automáticamente
-
-### Paso 3 — Agregar la API Key
-1. En el panel de Render → **Environment**
-2. Agregá la variable:
-   - **Key:** `ANTHROPIC_API_KEY`
-   - **Value:** `sk-ant-tu-clave-aqui`
-3. Click **"Save Changes"**
-
-### Paso 4 — Deploy
-Render hace el deploy automáticamente. En ~2 minutos tenés tu URL pública:
-```
-https://alex2035.onrender.com
-```
-
----
-
-## 🎮 Cómo funciona
-
-| Escena | Decisión | Concepto IA |
-|--------|----------|-------------|
-| 🌅 Mañana | Organizar con/sin IA | Optimización de datos |
-| 💼 Trabajo | Resolver con/sin IA | Potenciación humana |
-| 🎮 Ocio | Elegir con/sin IA | Personalización |
+**Escenas:**
+| # | Escena | Tema |
+|---|--------|------|
+| 1 | 🌅 Mañana | Organización con/sin IA |
+| 2 | 💼 Trabajo | Resolución de problemas |
+| 3 | 🎮 Ocio | Personalización y recomendación |
+| 4 | 🔧 Prompting | Cómo comunicarse con la IA |
 
 **Finales posibles:**
-- 🟢 Equilibrio humano + IA (mix de opciones)
-- 🟡 Control total humano (todas opción B)
-- 🔵 Dependencia digital (todas opción A)
+| Elecciones | Final |
+|------------|-------|
+| Mayoría con IA | 🟢 Equilibrio humano + IA |
+| Todas sin IA | 🟡 Control total humano |
+| Todas con IA | 🔵 Dependencia digital |
 
 ---
 
-## 🔑 Obtener API Key de Anthropic
+## 🚀 Correr localmente
 
-1. Entrá a **https://console.anthropic.com**
-2. Creá una cuenta o logueate
-3. Ir a **"API Keys"** → **"Create Key"**
-4. Copiá la clave (empieza con `sk-ant-`)
+```bash
+pip install flask gunicorn
+python app.py
+# → http://localhost:5000
+```
+
+---
+
+## 🛠️ Tecnologías utilizadas
+
+| Herramienta | Uso |
+|-------------|-----|
+| Python + Flask | Servidor web y lógica del juego |
+| HTML + CSS + JS | Interfaz cyberpunk (sin frameworks) |
+| Gunicorn | Servidor WSGI para producción |
+| Render.com | Deploy y hosting |
+| IA generativa | Narrativa, prompts, conceptualización y código |
+
+---
+
+## 💡 Fórmula del prompt efectivo
+
+> Contexto + Rol + Objetivo + Restricciones = Resultado de calidad
+
+---
+
+*© 2025 | Proyecto Final — Introducción a la IA | Baroni Ulises*
