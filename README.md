@@ -16,26 +16,7 @@ alex2035/
 
 ---
 
-## 🚀 Correr localmente
-
-### 1. Instalar dependencias
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Configurar la API Key de Anthropic
-```bash
-# En Mac/Linux:
-export ANTHROPIC_API_KEY="sk-ant-..."
-
-# En Windows (CMD):
-set ANTHROPIC_API_KEY=sk-ant-...
-
-# En Windows (PowerShell):
-$env:ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-### 3. Correr el servidor
+### 🚀 Correr el servidor
 ```bash
 python app.py
 ```
