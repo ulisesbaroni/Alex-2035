@@ -17,9 +17,9 @@ alex2035/
 │   └── index.html          ← Toda la UI (HTML + CSS + JS)
 └── static/
     ├── audio/
-    │   └── ambient.mp3     ← Audio ambient en loop (agregar manualmente)
+    │   └── ambient.mp3     ← Audio ambient en loop
     └── img/
-        └── *.jpg / *.png   ← Imágenes de cada escena (agregar manualmente)
+        └── *.jpg / *.png   ← Imágenes de cada escena
 ```
 
 ---
